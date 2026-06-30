@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="captcha" method="upgrade">
+	<name>plg_captcha_redeyed</name>
+	<author>Redeyed Corporation</author>
+	<creationDate>2026-06</creationDate>
+	<copyright>Copyright (C) 2026 Redeyed Corporation. All rights reserved.</copyright>
+	<license>MIT</license>
+	<authorEmail>support@redeyed.com</authorEmail>
+	<authorUrl>https://redeyed.com</authorUrl>
+	<version>1.0.0</version>
+	<description>PLG_CAPTCHA_REDEYED_XML_DESCRIPTION</description>
+	<namespace path="src">Redeyed\Plugin\Captcha\Redeyed</namespace>
+
+	<files>
+		<folder plugin="redeyed">services</folder>
+		<folder>src</folder>
+		<folder>language</folder>
+	</files>
+
+	<languages folder="language">
+		<language tag="en-GB">en-GB/plg_captcha_redeyed.ini</language>
+		<language tag="en-GB">en-GB/plg_captcha_redeyed.sys.ini</language>
+	</languages>
+
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<field
+					name="site_key"
+					type="text"
+					label="PLG_CAPTCHA_REDEYED_FIELD_SITE_KEY_LABEL"
+					description="PLG_CAPTCHA_REDEYED_FIELD_SITE_KEY_DESC"
+					filter="string"
+				/>
+				<field
+					name="api_key"
+					type="password"
+					label="PLG_CAPTCHA_REDEYED_FIELD_API_KEY_LABEL"
+					description="PLG_CAPTCHA_REDEYED_FIELD_API_KEY_DESC"
+					autocomplete="off"
+				/>
+				<field
+					name="base_url"
+					type="url"
+					label="PLG_CAPTCHA_REDEYED_FIELD_BASE_URL_LABEL"
+					description="PLG_CAPTCHA_REDEYED_FIELD_BASE_URL_DESC"
+					default="https://redeyed.com"
+					filter="url"
+				/>
+			</fieldset>
+		</fields>
+	</config>
+</extension>

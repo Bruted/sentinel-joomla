@@ -1,0 +1,220 @@
+<?php
+
+/**
+ * @package     Redeyed.Plugin
+ * @subpackage  Captcha.redeyed
+ *
+ * @copyright   Copyright (C) 2026 Redeyed Corporation. All rights reserved.
+ * @license     MIT
+ */
+
+namespace Redeyed\Plugin\Captcha\Redeyed\Extension;
+
+use Joomla\CMS\Http\HttpFactory;
+use Joomla\CMS\Plugin\CMSPlugin;
+use Joomla\CMS\WebAsset\WebAssetManager;
+use Joomla\Event\SubscriberInterface;
+
+\defined('_JEXEC') or die;
+
+/**
+ * Redeyed Sentinel CAPTCHA plugin.
+ *
+ * Sentinel is a self-hosted CAPTCHA + IP-reputation service. The plugin is free
+ * to install but stays INERT until both a Site Key and an API Key are provided.
+ * When keys are missing, verification fails open so it never blocks a site that
+ * has not finished configuration.
+ */
+final class Redeyed extends CMSPlugin implements SubscriberInterface
+{
+	/**
+	 * Load the language file on instantiation.
+	 *
+	 * @var  boolean
+	 */
+	protected $autoloadLanguage = true;
+
+	/**
+	 * Returns an array of events this subscriber will listen to.
+	 *
+	 * @return  array<string, string>
+	 */
+	public static function getSubscribedEvents(): array
+	{
+		return [
+			'onInit'        => 'onInit',
+			'onDisplay'     => 'onDisplay',
+			'onCheckAnswer' => 'onCheckAnswer',
+		];
+	}
+
+	/**
+	 * Initialise the CAPTCHA: load the Sentinel widget script.
+	 *
+	 * @param   \Joomla\Event\Event  $event  The event.
+	 *
+	 * @return  void
+	 */
+	public function onInit($event): void
+	{
+		$siteKey = trim((string) $this->params->get('site_key', ''));
+
+		// Stay inert until a Site Key is configured.
+		if ($siteKey === '') {
+			return;
+		}
+
+		$baseUrl = $this->getBaseUrl();
+
+		$app = $this->getApplication();
+
+		/** @var WebAssetManager $wa */
+		$wa = $app->getDocument()->getWebAssetManager();
+		$wa->registerAndUseScript(
+			'plg_captcha_redeyed.sentinel',
+			$baseUrl . '/sentinel.js',
+			[],
+			['async' => true]
+		);
+	}
+
+	/**
+	 * Output the Sentinel CAPTCHA widget markup.
+	 *
+	 * @param   \Joomla\Event\Event  $event  The event. Arguments: [name, id, class].
+	 *
+	 * @return  void  The HTML is set as the event result.
+	 */
+	public function onDisplay($event): void
+	{
+		$arguments = method_exists($event, 'getArguments') ? $event->getArguments() : [];
+
+		$class = isset($arguments[2]) ? (string) $arguments[2] : '';
+
+		$siteKey = trim((string) $this->params->get('site_key', ''));
+
+		$classAttr = trim('sentinel-captcha ' . $class);
+
+		$html = '<div class="' . htmlspecialchars($classAttr, ENT_QUOTES, 'UTF-8') . '"'
+			. ' data-sitekey="' . htmlspecialchars($siteKey, ENT_QUOTES, 'UTF-8') . '"></div>';
+
+		$this->setEventResult($event, $html);
+	}
+
+	/**
+	 * Verify the posted Sentinel token against the Sentinel verify endpoint.
+	 *
+	 * @param   \Joomla\Event\Event  $event  The event. Argument [0] is the posted code.
+	 *
+	 * @return  void  A boolean result is set on the event.
+	 */
+	public function onCheckAnswer($event): void
+	{
+		$this->setEventResult($event, $this->verify());
+	}
+
+	/**
+	 * Perform the actual verification.
+	 *
+	 * @return  boolean  True when the challenge passed, or when the plugin is inert.
+	 */
+	private function verify(): bool
+	{
+		$siteKey = trim((string) $this->params->get('site_key', ''));
+		$apiKey  = trim((string) $this->params->get('api_key', ''));
+
+		// Fail open while inert: empty keys mean the plugin is not configured.
+		if ($siteKey === '' || $apiKey === '') {
+			return true;
+		}
+
+		$token = (string) $this->getApplication()->getInput()->post->get(
+			'sentinel-token',
+			'',
+			'string'
+		);
+
+		if ($token === '') {
+			return false;
+		}
+
+		$baseUrl = $this->getBaseUrl();
+
+		try {
+			$http = (new HttpFactory())->getHttp();
+
+			$response = $http->post(
+				$baseUrl . '/api/v1/verify',
+				json_encode(
+					[
+						'site_key' => $siteKey,
+						'token'    => $token,
+					]
+				),
+				[
+					'Content-Type' => 'application/json',
+					'Accept'       => 'application/json',
+					'X-Api-Key'    => $apiKey,
+				]
+			);
+		} catch (\Throwable $e) {
+			return false;
+		}
+
+		$body = json_decode((string) $response->body, true);
+
+		if (!\is_array($body)) {
+			return false;
+		}
+
+		if (isset($body['data']['success']) && $body['data']['success'] === true) {
+			return true;
+		}
+
+		if (isset($body['success']) && $body['success'] === true) {
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Resolve and normalise the configured base URL.
+	 *
+	 * @return  string
+	 */
+	private function getBaseUrl(): string
+	{
+		$baseUrl = trim((string) $this->params->get('base_url', 'https://redeyed.com'));
+
+		if ($baseUrl === '') {
+			$baseUrl = 'https://redeyed.com';
+		}
+
+		return rtrim($baseUrl, '/');
+	}
+
+	/**
+	 * Set a result on the event in a version-tolerant way.
+	 *
+	 * @param   \Joomla\Event\Event  $event  The event.
+	 * @param   mixed                $value  The result value.
+	 *
+	 * @return  void
+	 */
+	private function setEventResult($event, $value): void
+	{
+		if (method_exists($event, 'addResult')) {
+			$event->addResult($value);
+
+			return;
+		}
+
+		if (method_exists($event, 'setArgument')) {
+			$result   = $event->getArgument('result', []);
+			$result   = \is_array($result) ? $result : [$result];
+			$result[] = $value;
+			$event->setArgument('result', $result);
+		}
+	}
+}
