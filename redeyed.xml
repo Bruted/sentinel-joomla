@@ -7,7 +7,7 @@
 	<license>MIT</license>
 	<authorEmail>support@redeyed.com</authorEmail>
 	<authorUrl>https://redeyed.com</authorUrl>
-	<version>1.0.0</version>
+	<version>1.0.1</version>
 	<description>PLG_CAPTCHA_REDEYED_XML_DESCRIPTION</description>
 	<namespace path="src">Redeyed\Plugin\Captcha\Redeyed</namespace>
 
@@ -33,10 +33,10 @@
 					filter="string"
 				/>
 				<field
-					name="api_key"
+					name="secret_key"
 					type="password"
-					label="PLG_CAPTCHA_REDEYED_FIELD_API_KEY_LABEL"
-					description="PLG_CAPTCHA_REDEYED_FIELD_API_KEY_DESC"
+					label="PLG_CAPTCHA_REDEYED_FIELD_SECRET_KEY_LABEL"
+					description="PLG_CAPTCHA_REDEYED_FIELD_SECRET_KEY_DESC"
 					autocomplete="off"
 				/>
 				<field

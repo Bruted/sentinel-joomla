@@ -21,9 +21,11 @@ use Joomla\Event\SubscriberInterface;
  * Redeyed Sentinel CAPTCHA plugin.
  *
  * Sentinel is a self-hosted CAPTCHA + IP-reputation service. The plugin is free
- * to install but stays INERT until both a Site Key and an API Key are provided.
- * When keys are missing, verification fails open so it never blocks a site that
- * has not finished configuration.
+ * to install but stays INERT until both a Site Key and a Secret Key are provided.
+ * The Secret Key authenticates the server-side verify call, reCAPTCHA/Turnstile
+ * style — no developer API key is required. When the Secret Key is missing,
+ * verification fails open so it never blocks a site that has not finished
+ * configuration.
  */
 final class Redeyed extends CMSPlugin implements SubscriberInterface
 {
@@ -120,11 +122,10 @@ final class Redeyed extends CMSPlugin implements SubscriberInterface
 	 */
 	private function verify(): bool
 	{
-		$siteKey = trim((string) $this->params->get('site_key', ''));
-		$apiKey  = trim((string) $this->params->get('api_key', ''));
+		$secretKey = trim((string) $this->params->get('secret_key', ''));
 
-		// Fail open while inert: empty keys mean the plugin is not configured.
-		if ($siteKey === '' || $apiKey === '') {
+		// Fail open while inert: an empty Secret Key means the plugin is not configured.
+		if ($secretKey === '') {
 			return true;
 		}
 
@@ -140,21 +141,30 @@ final class Redeyed extends CMSPlugin implements SubscriberInterface
 
 		$baseUrl = $this->getBaseUrl();
 
+		$payload = [
+			'secret'   => $secretKey,
+			'response' => $token,
+		];
+
+		$remoteIp = (string) $this->getApplication()->getInput()->server->get(
+			'REMOTE_ADDR',
+			'',
+			'string'
+		);
+
+		if ($remoteIp !== '') {
+			$payload['remoteip'] = $remoteIp;
+		}
+
 		try {
 			$http = (new HttpFactory())->getHttp();
 
 			$response = $http->post(
-				$baseUrl . '/api/v1/verify',
-				json_encode(
-					[
-						'site_key' => $siteKey,
-						'token'    => $token,
-					]
-				),
+				$baseUrl . '/sentinel/siteverify',
+				json_encode($payload),
 				[
 					'Content-Type' => 'application/json',
 					'Accept'       => 'application/json',
-					'X-Api-Key'    => $apiKey,
 				]
 			);
 		} catch (\Throwable $e) {
@@ -167,15 +177,7 @@ final class Redeyed extends CMSPlugin implements SubscriberInterface
 			return false;
 		}
 
-		if (isset($body['data']['success']) && $body['data']['success'] === true) {
-			return true;
-		}
-
-		if (isset($body['success']) && $body['success'] === true) {
-			return true;
-		}
-
-		return false;
+		return isset($body['success']) && $body['success'] === true;
 	}
 
 	/**
