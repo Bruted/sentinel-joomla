@@ -7,7 +7,7 @@
 	<license>MIT</license>
 	<authorEmail>support@redeyed.com</authorEmail>
 	<authorUrl>https://redeyed.com</authorUrl>
-	<version>1.0.1</version>
+	<version>1.0.2</version>
 	<description>PLG_CAPTCHA_REDEYED_XML_DESCRIPTION</description>
 	<namespace path="src">Redeyed\Plugin\Captcha\Redeyed</namespace>
 
@@ -46,6 +46,47 @@
 					description="PLG_CAPTCHA_REDEYED_FIELD_BASE_URL_DESC"
 					default="https://redeyed.com"
 					filter="url"
+				/>
+				<field
+					name="widget"
+					type="list"
+					label="PLG_CAPTCHA_REDEYED_FIELD_WIDGET_LABEL"
+					description="PLG_CAPTCHA_REDEYED_FIELD_WIDGET_DESC"
+					default=""
+					filter="string"
+				>
+					<option value="">Adaptive (server default)</option>
+					<option value="behavioral">Behavioral</option>
+					<option value="checkbox">Checkbox</option>
+					<option value="press_hold">Press &amp; Hold</option>
+					<option value="image_pick">Image Pick</option>
+				</field>
+				<field
+					name="theme"
+					type="list"
+					label="PLG_CAPTCHA_REDEYED_FIELD_THEME_LABEL"
+					description="PLG_CAPTCHA_REDEYED_FIELD_THEME_DESC"
+					default=""
+					filter="string"
+				>
+					<option value="">Widget default</option>
+					<option value="auto">Auto</option>
+					<option value="light">Light</option>
+					<option value="dark">Dark</option>
+				</field>
+				<field
+					name="scheme"
+					type="text"
+					label="PLG_CAPTCHA_REDEYED_FIELD_SCHEME_LABEL"
+					description="PLG_CAPTCHA_REDEYED_FIELD_SCHEME_DESC"
+					filter="string"
+				/>
+				<field
+					name="difficulty"
+					type="text"
+					label="PLG_CAPTCHA_REDEYED_FIELD_DIFFICULTY_LABEL"
+					description="PLG_CAPTCHA_REDEYED_FIELD_DIFFICULTY_DESC"
+					filter="string"
 				/>
 			</fieldset>
 		</fields>

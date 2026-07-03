@@ -98,7 +98,27 @@ final class Redeyed extends CMSPlugin implements SubscriberInterface
 		$classAttr = trim('sentinel-captcha ' . $class);
 
 		$html = '<div class="' . htmlspecialchars($classAttr, ENT_QUOTES, 'UTF-8') . '"'
-			. ' data-sitekey="' . htmlspecialchars($siteKey, ENT_QUOTES, 'UTF-8') . '"></div>';
+			. ' data-sitekey="' . htmlspecialchars($siteKey, ENT_QUOTES, 'UTF-8') . '"';
+
+		// Optional widget customisation. Each param maps to a data-* attribute the
+		// Sentinel widget script reads, and is rendered only when non-empty so the
+		// defaults stay fully adaptive and backward-compatible.
+		$dataAttributes = [
+			'data-widget'     => trim((string) $this->params->get('widget', '')),
+			'data-theme'      => trim((string) $this->params->get('theme', '')),
+			'data-scheme'     => trim((string) $this->params->get('scheme', '')),
+			'data-difficulty' => trim((string) $this->params->get('difficulty', '')),
+		];
+
+		foreach ($dataAttributes as $attribute => $value) {
+			if ($value === '') {
+				continue;
+			}
+
+			$html .= ' ' . $attribute . '="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
+		}
+
+		$html .= '></div>';
 
 		$this->setEventResult($event, $html);
 	}
