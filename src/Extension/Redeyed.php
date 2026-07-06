@@ -166,11 +166,7 @@ final class Redeyed extends CMSPlugin implements SubscriberInterface
 			'response' => $token,
 		];
 
-		$remoteIp = (string) $this->getApplication()->getInput()->server->get(
-			'REMOTE_ADDR',
-			'',
-			'string'
-		);
+		$remoteIp = $this->resolveRemoteIp();
 
 		if ($remoteIp !== '') {
 			$payload['remoteip'] = $remoteIp;
@@ -214,6 +210,46 @@ final class Redeyed extends CMSPlugin implements SubscriberInterface
 		}
 
 		return rtrim($baseUrl, '/');
+	}
+
+	/**
+	 * Resolve the visitor's IP address in a proxy-aware way.
+	 *
+	 * Reads, in order of trust, the Cloudflare connecting-IP header, the first
+	 * entry of X-Forwarded-For, X-Real-IP, then the raw REMOTE_ADDR, returning
+	 * the first value that is a valid IP. This makes the remoteip sent on
+	 * verification match the address that actually solved the challenge when the
+	 * site sits behind Cloudflare or a reverse proxy, instead of the proxy's own
+	 * REMOTE_ADDR.
+	 *
+	 * @return  string  A valid IP address, or '' when none can be determined.
+	 */
+	private function resolveRemoteIp(): string
+	{
+		$server = $this->getApplication()->getInput()->server;
+
+		$candidates = [
+			(string) $server->get('HTTP_CF_CONNECTING_IP', '', 'string'),
+			(string) $server->get('HTTP_X_FORWARDED_FOR', '', 'string'),
+			(string) $server->get('HTTP_X_REAL_IP', '', 'string'),
+			(string) $server->get('REMOTE_ADDR', '', 'string'),
+		];
+
+		foreach ($candidates as $candidate) {
+			if ($candidate === '') {
+				continue;
+			}
+
+			// X-Forwarded-For may be a comma-separated chain; the first entry is
+			// the original client.
+			$candidate = trim(explode(',', $candidate)[0]);
+
+			if ($candidate !== '' && filter_var($candidate, FILTER_VALIDATE_IP) !== false) {
+				return $candidate;
+			}
+		}
+
+		return '';
 	}
 
 	/**

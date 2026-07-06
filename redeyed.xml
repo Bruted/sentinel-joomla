@@ -7,7 +7,7 @@
 	<license>MIT</license>
 	<authorEmail>support@redeyed.com</authorEmail>
 	<authorUrl>https://redeyed.com</authorUrl>
-	<version>1.0.2</version>
+	<version>1.0.3</version>
 	<description>PLG_CAPTCHA_REDEYED_XML_DESCRIPTION</description>
 	<namespace path="src">Redeyed\Plugin\Captcha\Redeyed</namespace>
 

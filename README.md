@@ -82,6 +82,13 @@ The plugin is free, but it needs a Site Key and a Secret Key to do anything.
 
 ## Changelog
 
+### 1.0.3
+
+- Send proxy-aware `remoteip` on verification (CF-Connecting-IP /
+  X-Forwarded-For / X-Real-IP / REMOTE_ADDR) so it matches the IP that solved
+  the challenge. Fixes `remoteip` reporting the proxy address when Joomla sits
+  behind Cloudflare or a reverse proxy.
+
 ### 1.0.2
 
 - Add optional widget customisation params: **Widget Type** (`data-widget`),
