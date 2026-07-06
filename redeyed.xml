@@ -7,7 +7,7 @@
 	<license>MIT</license>
 	<authorEmail>support@redeyed.com</authorEmail>
 	<authorUrl>https://redeyed.com</authorUrl>
-	<version>1.0.3</version>
+	<version>1.0.4</version>
 	<description>PLG_CAPTCHA_REDEYED_XML_DESCRIPTION</description>
 	<namespace path="src">Redeyed\Plugin\Captcha\Redeyed</namespace>
 
@@ -86,6 +86,13 @@
 					type="text"
 					label="PLG_CAPTCHA_REDEYED_FIELD_DIFFICULTY_LABEL"
 					description="PLG_CAPTCHA_REDEYED_FIELD_DIFFICULTY_DESC"
+					filter="string"
+				/>
+				<field
+					name="width"
+					type="text"
+					label="PLG_CAPTCHA_REDEYED_FIELD_WIDTH_LABEL"
+					description="PLG_CAPTCHA_REDEYED_FIELD_WIDTH_DESC"
 					filter="string"
 				/>
 			</fieldset>

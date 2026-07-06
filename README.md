@@ -13,8 +13,8 @@ No developer API key is required — the flow is reCAPTCHA/Turnstile-style.
 - **Render** — loads `{base_url}/sentinel.js` (async) and outputs
   `<div class="sentinel-captcha" data-sitekey="{site_key}"></div>`. The Sentinel
   widget injects a hidden `sentinel-token` input into the form. Optional widget
-  customisation params (Widget Type, Theme, Colour Scheme, Difficulty) add the
-  matching `data-*` attributes to that div, but only when they are set.
+  customisation params (Widget Type, Theme, Colour Scheme, Difficulty, Width)
+  add the matching `data-*` attributes to that div, but only when they are set.
 - **Verify** — on submit, the plugin POSTs to `{base_url}/sentinel/siteverify`
   with the JSON body `{"secret":"<secret_key>","response":"<sentinel-token>"}`
   (plus an optional `"remoteip"` of the client). The Secret Key authenticates the
@@ -49,7 +49,7 @@ In the plugin's settings:
 
 ### Optional widget customisation
 
-All four are optional and blank by default; each is rendered as a `data-*`
+All five are optional and blank by default; each is rendered as a `data-*`
 attribute on the widget `<div>` **only when non-empty**, so leaving them blank
 keeps Sentinel's fully adaptive behaviour and stays backward-compatible.
 
@@ -63,6 +63,8 @@ keeps Sentinel's fully adaptive behaviour and stays backward-compatible.
   `medium`, `hard`, `max` (or `1`–`6`). This only **raises** difficulty above
   Sentinel's adaptive baseline — it never lowers it. Blank uses the adaptive
   default.
+- **Width** (`data-width`) — fixed widget width, e.g. `300px` or `100%`. Blank
+  uses the widget default.
 
 Save. Then make Sentinel the active CAPTCHA:
 
@@ -81,6 +83,11 @@ The plugin is free, but it needs a Site Key and a Secret Key to do anything.
 - PHP 8.1+
 
 ## Changelog
+
+### 1.0.4
+
+- Add widget **Width** option (`data-width`) — a fixed widget width (e.g.
+  `300px` or `100%`) rendered on the widget `<div>` only when set.
 
 ### 1.0.3
 

@@ -108,6 +108,7 @@ final class Redeyed extends CMSPlugin implements SubscriberInterface
 			'data-theme'      => trim((string) $this->params->get('theme', '')),
 			'data-scheme'     => trim((string) $this->params->get('scheme', '')),
 			'data-difficulty' => trim((string) $this->params->get('difficulty', '')),
+			'data-width'      => trim((string) $this->params->get('width', '')),
 		];
 
 		foreach ($dataAttributes as $attribute => $value) {
