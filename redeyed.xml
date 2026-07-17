@@ -7,7 +7,7 @@
 	<license>MIT</license>
 	<authorEmail>support@redeyed.com</authorEmail>
 	<authorUrl>https://redeyed.com</authorUrl>
-	<version>1.0.4</version>
+	<version>1.0.5</version>
 	<description>PLG_CAPTCHA_REDEYED_XML_DESCRIPTION</description>
 	<namespace path="src">Redeyed\Plugin\Captcha\Redeyed</namespace>
 
@@ -95,6 +95,18 @@
 					description="PLG_CAPTCHA_REDEYED_FIELD_WIDTH_DESC"
 					filter="string"
 				/>
+				<field
+					name="log_blocks"
+					type="radio"
+					layout="joomla.form.field.radio.switcher"
+					label="PLG_CAPTCHA_REDEYED_FIELD_LOG_BLOCKS_LABEL"
+					description="PLG_CAPTCHA_REDEYED_FIELD_LOG_BLOCKS_DESC"
+					default="1"
+					filter="integer"
+				>
+					<option value="1">JYES</option>
+					<option value="0">JNO</option>
+				</field>
 			</fieldset>
 		</fields>
 	</config>

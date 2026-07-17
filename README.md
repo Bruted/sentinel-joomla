@@ -84,6 +84,16 @@ The plugin is free, but it needs a Site Key and a Secret Key to do anything.
 
 ## Changelog
 
+### 1.0.5
+
+- **Block log.** Blocked submissions are recorded (IP, outcome, score) to
+  `administrator/logs/plg_captcha_redeyed.log.php` via Joomla's native logging,
+  toggled by the new **Log blocked attempts** option (on by default).
+- Note: as a CAPTCHA-group plugin, *which* forms show the widget (login,
+  registration, contact, password reset, …) is controlled by Joomla itself —
+  Global Configuration → **Default Captcha** plus each extension's captcha
+  setting — so per-form control is native and needs no plugin option.
+
 ### 1.0.4
 
 - Add widget **Width** option (`data-width`) — a fixed widget width (e.g.

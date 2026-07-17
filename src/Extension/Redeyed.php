@@ -11,6 +11,7 @@
 namespace Redeyed\Plugin\Captcha\Redeyed\Extension;
 
 use Joomla\CMS\Http\HttpFactory;
+use Joomla\CMS\Log\Log;
 use Joomla\CMS\Plugin\CMSPlugin;
 use Joomla\CMS\WebAsset\WebAssetManager;
 use Joomla\Event\SubscriberInterface;
@@ -35,6 +36,13 @@ final class Redeyed extends CMSPlugin implements SubscriberInterface
 	 * @var  boolean
 	 */
 	protected $autoloadLanguage = true;
+
+	/**
+	 * Whether the block-log logger has been registered this request.
+	 *
+	 * @var  boolean
+	 */
+	private static $loggerReady = false;
 
 	/**
 	 * Returns an array of events this subscriber will listen to.
@@ -150,6 +158,8 @@ final class Redeyed extends CMSPlugin implements SubscriberInterface
 			return true;
 		}
 
+		$remoteIp = $this->resolveRemoteIp();
+
 		$token = (string) $this->getApplication()->getInput()->post->get(
 			'sentinel-token',
 			'',
@@ -157,6 +167,8 @@ final class Redeyed extends CMSPlugin implements SubscriberInterface
 		);
 
 		if ($token === '') {
+			$this->logBlock($remoteIp, 'missing_token', null);
+
 			return false;
 		}
 
@@ -166,8 +178,6 @@ final class Redeyed extends CMSPlugin implements SubscriberInterface
 			'secret'   => $secretKey,
 			'response' => $token,
 		];
-
-		$remoteIp = $this->resolveRemoteIp();
 
 		if ($remoteIp !== '') {
 			$payload['remoteip'] = $remoteIp;
@@ -185,16 +195,71 @@ final class Redeyed extends CMSPlugin implements SubscriberInterface
 				]
 			);
 		} catch (\Throwable $e) {
+			$this->logBlock($remoteIp, 'error', null);
+
 			return false;
 		}
 
 		$body = json_decode((string) $response->body, true);
 
 		if (!\is_array($body)) {
+			$this->logBlock($remoteIp, 'error', null);
+
 			return false;
 		}
 
-		return isset($body['success']) && $body['success'] === true;
+		$passed  = isset($body['success']) && $body['success'] === true;
+		$outcome = isset($body['outcome']) ? (string) $body['outcome'] : '';
+		$score   = isset($body['score']) ? (float) $body['score'] : null;
+
+		if (!$passed) {
+			$this->logBlock($remoteIp, $outcome, $score);
+		}
+
+		return $passed;
+	}
+
+	/**
+	 * Record a blocked attempt to a Joomla log file when logging is enabled.
+	 *
+	 * Writes to administrator/logs/plg_captcha_redeyed.log.php via Joomla's
+	 * native Log — no custom table. The Secret Key is never logged.
+	 *
+	 * @param   string      $ip       The visitor's IP.
+	 * @param   string      $outcome  The verify outcome.
+	 * @param   float|null  $score    The verify score.
+	 *
+	 * @return  void
+	 */
+	private function logBlock(string $ip, string $outcome, ?float $score): void
+	{
+		if (!(bool) $this->params->get('log_blocks', 1)) {
+			return;
+		}
+
+		try {
+			if (!self::$loggerReady) {
+				Log::addLogger(
+					['text_file' => 'plg_captcha_redeyed.log.php'],
+					Log::ALL,
+					['plg_captcha_redeyed']
+				);
+				self::$loggerReady = true;
+			}
+
+			Log::add(
+				sprintf(
+					'Blocked submission from %s (outcome: %s, score: %s)',
+					$ip !== '' ? $ip : 'unknown',
+					$outcome !== '' ? $outcome : 'n/a',
+					$score === null ? 'n/a' : (string) $score
+				),
+				Log::WARNING,
+				'plg_captcha_redeyed'
+			);
+		} catch (\Throwable $e) {
+			// Logging must never break verification.
+		}
 	}
 
 	/**
